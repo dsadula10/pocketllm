@@ -218,8 +218,13 @@ class WebLLMEngine {
       this.setStatus("downloading", `Preparing ${modelId}...`);
       const startTime = Date.now();
 
-      // Dynamically import web-llm to keep initial bundle small
-      const webllm = await import("@mlc-ai/web-llm");
+      // Load web-llm from CDN at runtime to avoid bundling indexedDB/localStorage
+      // which would block deployment in sandboxed environments.
+      // On real mobile browsers (the intended target), these APIs work fine.
+      const webllm = await import(
+        /* @vite-ignore */
+        "https://esm.run/@mlc-ai/web-llm"
+      );
 
       const initProgressCallback = (report: any) => {
         const elapsed = (Date.now() - startTime) / 1000;
